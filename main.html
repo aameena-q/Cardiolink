@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CardioLink - Welcome</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #4facfe 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+
+        /* Animated Background */
+        .animated-bg {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+        }
+
+        .circle {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            animation: float 20s infinite ease-in-out;
+        }
+
+        .circle:nth-child(1) {
+            width: 300px;
+            height: 300px;
+            top: -100px;
+            left: -100px;
+            animation-delay: 0s;
+        }
+
+        .circle:nth-child(2) {
+            width: 200px;
+            height: 200px;
+            top: 50%;
+            right: -50px;
+            animation-delay: 2s;
+        }
+
+        .circle:nth-child(3) {
+            width: 150px;
+            height: 150px;
+            bottom: -50px;
+            left: 30%;
+            animation-delay: 4s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-50px) rotate(180deg); }
+        }
+
+        .ecg-line {
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.2);
+            top: 30%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: translateY(0); }
+            10% { transform: translateY(-30px); }
+            15% { transform: translateY(20px); }
+            20% { transform: translateY(-10px); }
+            25% { transform: translateY(0); }
+        }
+
+        /* Main Container */
+        .container {
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 30px;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.3);
+            overflow: visible;
+            max-width: 1100px;
+            width: 100%;
+            position: relative;
+            z-index: 1;
+            animation: slideUp 0.8s ease-out;
+            margin: 20px 0;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Header Section */
+        .header {
+            text-align: center;
+            padding: 50px 40px 35px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(79, 172, 254, 0.1) 100%);
+            border-radius: 30px 30px 0 0;
+        }
+
+        .logo {
+            font-size: 48px;
+            margin-bottom: 12px;
+            animation: heartbeat 1.5s ease-in-out infinite;
+        }
+
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            25% { transform: scale(1.15); }
+            50% { transform: scale(1); }
+        }
+
+        .brand-name {
+            font-size: 42px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #4facfe 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 12px;
+        }
+
+        .tagline {
+            font-size: 16px;
+            color: #666;
+            max-width: 600px;
+            margin: 0 auto 25px;
+            line-height: 1.6;
+        }
+
+        /* Scroll Down Indicator */
+        .scroll-indicator {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            margin-top: 20px;
+            cursor: pointer;
+            animation: bounce 2s infinite;
+        }
+
+        .scroll-indicator-text {
+            font-size: 12px;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 500;
+        }
+
+        .scroll-arrow {
+            width: 24px;
+            height: 24px;
+            border-left: 2px solid #667eea;
+            border-bottom: 2px solid #667eea;
+            transform: rotate(-45deg);
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-10px);
+            }
+            60% {
+                transform: translateY(-5px);
+            }
+        }
+
+        /* Role Selection */
+        .role-selection {
+            padding: 40px 40px 50px;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 26px;
+            color: #333;
+            margin-bottom: 35px;
+            font-weight: 600;
+        }
+
+        .role-cards {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .role-card {
+            background: white;
+            border: 3px solid transparent;
+            border-radius: 20px;
+            padding: 35px 25px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .role-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, transparent 0%, rgba(102, 126, 234, 0.05) 100%);
+            transform: translateY(100%);
+            transition: transform 0.4s ease;
+        }
+
+        .role-card:hover::before {
+            transform: translateY(0);
+        }
+
+        .role-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .role-card.doctor:hover {
+            border-color: #667eea;
+        }
+
+        .role-card.patient:hover {
+            border-color: #4facfe;
+        }
+
+        .role-icon {
+            font-size: 64px;
+            margin-bottom: 18px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .role-title {
+            font-size: 26px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .role-card.doctor .role-title {
+            color: #667eea;
+        }
+
+        .role-card.patient .role-title {
+            color: #4facfe;
+        }
+
+        .role-description {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .role-button {
+            display: inline-block;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 1;
+            font-size: 15px;
+        }
+
+        .role-card.doctor .role-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .role-card.patient .role-button {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .role-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .features-list {
+            list-style: none;
+            text-align: left;
+            margin: 20px 0;
+            padding: 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .features-list li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .features-list li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: #4ade80;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 30px 40px;
+            background: #f8f9fa;
+            color: #999;
+            font-size: 13px;
+            border-radius: 0 0 30px 30px;
+        }
+
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Responsive */
+        @media (max-width: 968px) {
+            body {
+                padding: 15px;
+                align-items: flex-start;
+            }
+
+            .container {
+                margin: 15px 0;
+            }
+
+            .role-cards {
+                grid-template-columns: 1fr;
+                gap: 25px;
+                max-width: 500px;
+            }
+
+            .brand-name {
+                font-size: 36px;
+            }
+
+            .header {
+                padding: 40px 30px 30px;
+            }
+
+            .role-selection {
+                padding: 35px 30px 45px;
+            }
+
+            .section-title {
+                font-size: 24px;
+            }
+
+            .role-card {
+                padding: 30px 25px;
+            }
+
+            .role-icon {
+                font-size: 56px;
+            }
+
+            .role-title {
+                font-size: 24px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                max-width: 600px;
+                margin: 10px 0;
+            }
+
+            .logo {
+                font-size: 42px;
+            }
+
+            .brand-name {
+                font-size: 32px;
+            }
+
+            .tagline {
+                font-size: 15px;
+            }
+
+            .role-cards {
+                max-width: 450px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                border-radius: 20px;
+                margin: 10px 0;
+            }
+
+            .header {
+                padding: 30px 20px 25px;
+                border-radius: 20px 20px 0 0;
+            }
+
+            .logo {
+                font-size: 36px;
+                margin-bottom: 10px;
+            }
+
+            .brand-name {
+                font-size: 26px;
+                margin-bottom: 10px;
+            }
+
+            .tagline {
+                font-size: 13px;
+                line-height: 1.5;
+                padding: 0 10px;
+                margin-bottom: 20px;
+            }
+
+            .scroll-indicator {
+                margin-top: 15px;
+            }
+
+            .scroll-indicator-text {
+                font-size: 10px;
+            }
+
+            .scroll-arrow {
+                width: 20px;
+                height: 20px;
+            }
+
+            .section-title {
+                font-size: 20px;
+                margin-bottom: 25px;
+            }
+
+            .role-selection {
+                padding: 25px 15px 35px;
+                background-color: lightgrey;
+            }
+
+            .role-cards {
+                gap: 20px;
+            }
+
+            .role-card {
+                padding: 25px 20px;
+            }
+
+            .role-icon {
+                font-size: 48px;
+                margin-bottom: 15px;
+            }
+
+            .role-title {
+                font-size: 22px;
+            }
+
+            .role-description {
+                font-size: 13px;
+                margin-bottom: 15px;
+            }
+
+            .features-list {
+                margin: 15px 0;
+            }
+
+            .features-list li {
+                font-size: 12px;
+                padding: 6px 0;
+                padding-left: 22px;
+            }
+
+            .features-list li::before {
+                font-size: 14px;
+            }
+
+            .role-button {
+                padding: 10px 25px;
+                font-size: 14px;
+            }
+
+            .footer {
+                padding: 20px;
+                font-size: 11px;
+                border-radius: 0 0 20px 20px;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .container {
+                margin: 5px 0;
+            }
+
+            .brand-name {
+                font-size: 24px;
+            }
+
+            .tagline {
+                font-size: 12px;
+            }
+
+            .role-title {
+                font-size: 20px;
+            }
+
+            .role-icon {
+                font-size: 42px;
+            }
+
+            .role-card {
+                padding: 20px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="animated-bg">
+        <div class="circle"></div>
+        <div class="circle"></div>
+        <div class="circle"></div>
+        <div class="ecg-line"></div>
+    </div>
+
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">❤️</div>
+            <h1 class="brand-name">CardioLink</h1>
+            <p class="tagline">
+                Advanced ECG monitoring and cardiac care platform connecting patients with healthcare professionals
+            </p>
+            <div class="scroll-indicator" onclick="scrollToRoles()">
+                <span class="scroll-indicator-text">Scroll Down</span>
+                <div class="scroll-arrow"></div>
+            </div>
+        </div>
+
+        <!-- Role Selection -->
+        <div class="role-selection" id="roleSelection">
+            <h2 class="section-title">Choose Your Portal</h2>
+            
+            <div class="role-cards">
+                <!-- Doctor Card -->
+                <div class="role-card doctor" onclick="window.location.href='login.html'">
+                    <div class="role-icon">👨‍⚕️</div>
+                    <h3 class="role-title">Doctor Portal</h3>
+                    <p class="role-description">
+                        Access professional ECG monitoring dashboard with real-time patient data
+                    </p>
+                    <ul class="features-list">
+                        <li>Real-time ECG visualization</li>
+                        <li>Patient data management</li>
+                        <li>Advanced analytics tools</li>
+                        <li>Secure cloud storage</li>
+                    </ul>
+                    <a href="login.html" class="role-button">Doctor Login</a>
+                </div>
+
+                <!-- Patient Card -->
+                <div class="role-card patient" onclick="window.location.href='patient-login.html'">
+                    <div class="role-icon">👤</div>
+                    <h3 class="role-title">Patient Portal</h3>
+                    <p class="role-description">
+                        View your health records and stay connected with your cardiac health journey
+                    </p>
+                    <ul class="features-list">
+                        <li>Access your ECG records</li>
+                        <li>Track health progress</li>
+                        <li>Secure medical history</li>
+                        <li>24/7 online access</li>
+                    </ul>
+                    <a href="patient-login.html" class="role-button">Patient Login</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>© 2025 CardioLink. All rights reserved. | <a href="#">Privacy Policy</a> | <a href="#">Terms of Service</a></p>
+        </div>
+    </div>
+
+    <script>
+        // Prevent card click from triggering when clicking the button
+        document.querySelectorAll('.role-button').forEach(button => {
+            button.addEventListener('click', (e) => {
+                e.stopPropagation();
+            });
+        });
+
+        // Smooth scroll to role selection
+        function scrollToRoles() {
+            const roleSection = document.getElementById('roleSelection');
+            roleSection.scrollIntoView({ 
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+    </script>
+</body>
+</html>
