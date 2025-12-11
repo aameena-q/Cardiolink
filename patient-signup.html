@@ -486,10 +486,7 @@
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label for="mobile">Mobile Number<span class="required">*</span></label>
-                    <input type="tel" id="mobile" placeholder="+92 300 1234567" required pattern="[0-9+\s-]+">
-                </div>
+                <!-- Mobile input removed as requested -->
 
                 <div class="form-group">
                     <label for="email">Email Address<span class="optional">(Optional)</span></label>
@@ -532,7 +529,8 @@
             get,
             query,
             orderByChild,
-            equalTo
+            equalTo,
+            runTransaction
         } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
         const firebaseConfig = {
@@ -606,6 +604,7 @@
 
             if (confirmPassword === '') {
                 passwordMatch.textContent = '';
+                passwordMatch.className = 'password-match';
                 return;
             }
 
@@ -618,14 +617,19 @@
             }
         }
 
-        // Generate unique patient ID
-        function generatePatientId() {
-            const timestamp = Date.now();
-            const random = Math.floor(Math.random() * 1000);
-            return `P${timestamp}${random}`;
+        // Use a Firebase transaction to allocate a sequential patient ID (1,2,3,...)
+        async function getNextPatientId() {
+            const counterRef = ref(db, 'counters/nextPatientId');
+            const result = await runTransaction(counterRef, (current) => {
+                return (current || 0) + 1;
+            });
+            if (!result.committed) {
+                throw new Error('Could not allocate patient ID. Please try again.');
+            }
+            return result.snapshot.val();
         }
 
-        // Hash password (simple hash for demo - use bcrypt in production)
+        // Hash password (simple hash for demo - use bcrypt or Firebase Auth in production)
         async function hashPassword(password) {
             const encoder = new TextEncoder();
             const data = encoder.encode(password);
@@ -635,23 +639,13 @@
                 .join('');
         }
 
-        // Check if mobile or email already exists
-        async function checkExistingUser(mobile, email) {
+        // Check if email already exists (mobile removed)
+        async function checkExistingUser(email) {
+            if (!email) return { exists: false };
             const patientsRef = ref(db, 'patients_users');
-            const snapshot = await get(patientsRef);
-            
-            if (snapshot.exists()) {
-                const patients = snapshot.val();
-                for (let patientId in patients) {
-                    const patient = patients[patientId];
-                    if (patient.mobile === mobile) {
-                        return { exists: true, type: 'mobile' };
-                    }
-                    if (email && patient.email === email) {
-                        return { exists: true, type: 'email' };
-                    }
-                }
-            }
+            const emailQuery = query(patientsRef, orderByChild('email'), equalTo(email));
+            const emailSnap = await get(emailQuery);
+            if (emailSnap.exists()) return { exists: true, type: 'email' };
             return { exists: false };
         }
 
@@ -661,13 +655,12 @@
             const fullName = document.getElementById('fullName').value.trim();
             const age = document.getElementById('age').value;
             const gender = document.querySelector('input[name="gender"]:checked')?.value;
-            const mobile = document.getElementById('mobile').value.trim();
             const email = document.getElementById('email').value.trim();
             const password = passwordInput.value;
             const confirmPassword = confirmPasswordInput.value;
 
             // Validation
-            if (!fullName || !age || !gender || !mobile || !password || !confirmPassword) {
+            if (!fullName || !age || !gender || !password || !confirmPassword) {
                 showAlert('Please fill in all required fields', 'error');
                 return;
             }
@@ -686,43 +679,38 @@
             showAlert('Creating your account...', 'info');
 
             try {
-                // Check if user already exists
-                const existingUser = await checkExistingUser(mobile, email);
+                // Check if user already exists (only email)
+                const existingUser = await checkExistingUser(email);
                 if (existingUser.exists) {
                     setLoading(false);
-                    if (existingUser.type === 'mobile') {
-                        showAlert('Mobile number already registered. Please sign in.', 'error');
-                    } else {
-                        showAlert('Email already registered. Please sign in.', 'error');
-                    }
+                    showAlert('Email already registered. Please sign in.', 'error');
                     return;
                 }
 
-                // Generate unique patient ID
-                const patientId = generatePatientId();
+                // Allocate sequential patient ID from Firebase
+                const patientIdNumber = await getNextPatientId(); // 1,2,3,...
 
                 // Hash password
                 const hashedPassword = await hashPassword(password);
 
-                // Create patient data
+                // Create patient data (mobile removed)
                 const patientData = {
-                    patientId: patientId,
+                    patientId: patientIdNumber,
                     name: fullName,
-                    age: parseInt(age),
+                    age: parseInt(age, 10),
                     gender: gender,
-                    mobile: mobile,
                     email: email || null,
                     password: hashedPassword,
                     createdAt: new Date().toISOString(),
                     role: 'patient'
                 };
 
-                // Save to Firebase
-                await set(ref(db, `patients_users/${patientId}`), patientData);
+                // Save to Firebase under numeric key (convert to string for path)
+                await set(ref(db, `patients_users/${patientIdNumber}`), patientData);
 
-                showAlert('Account created successfully! Redirecting to login...', 'success');
+                showAlert(`Account created successfully! Your Patient ID is ${patientIdNumber}. Redirecting to login...`, 'success');
 
-                // Redirect to login page
+                // Redirect to login page after short delay
                 setTimeout(() => {
                     window.location.href = 'patient-login.html';
                 }, 2000);
@@ -730,9 +718,11 @@
             } catch (error) {
                 setLoading(false);
                 console.error('Signup error:', error);
-                showAlert('Failed to create account. Please try again.', 'error');
+                const message = (error && error.message) ? error.message : String(error);
+                showAlert('Failed to create account: ' + message, 'error');
             }
         });
     </script>
 </body>
 </html>
+

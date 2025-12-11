@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CardioLink - Login</title>
+    <title>CardioLink - Patient Login</title>
     <style>
         * {
             margin: 0;
@@ -13,7 +13,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
             min-height: 100vh;
             display: flex;
             justify-content: center;
@@ -55,7 +55,7 @@
             border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             overflow: hidden;
-            max-width: 450px;
+            max-width: 500px;
             width: 100%;
             position: relative;
             z-index: 1;
@@ -74,7 +74,7 @@
         }
 
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
             padding: 40px;
             text-align: center;
             color: white;
@@ -142,8 +142,8 @@
         }
 
         input:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            border-color: #4facfe;
+            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
         }
 
         input:disabled {
@@ -151,25 +151,16 @@
             cursor: not-allowed;
         }
 
-        .forgot-password {
-            text-align: right;
-            margin-top: 8px;
-        }
-
-        .forgot-password a {
-            color: #667eea;
-            text-decoration: none;
-            font-size: 13px;
-        }
-
-        .forgot-password a:hover {
-            text-decoration: underline;
+        .input-hint {
+            font-size: 12px;
+            color: #999;
+            margin-top: 5px;
         }
 
         .btn-login {
             width: 100%;
             padding: 14px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
             color: white;
             border: none;
             border-radius: 8px;
@@ -182,7 +173,7 @@
 
         .btn-login:hover:not(:disabled) {
             transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 10px 20px rgba(79, 172, 254, 0.3);
         }
 
         .btn-login:active:not(:disabled) {
@@ -202,7 +193,7 @@
         }
 
         .signup-link a {
-            color: #667eea;
+            color: #4facfe;
             text-decoration: none;
             font-weight: 600;
         }
@@ -252,6 +243,46 @@
             to { transform: rotate(360deg); }
         }
 
+        .divider {
+            text-align: center;
+            margin: 25px 0;
+            position: relative;
+        }
+
+        .divider::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            width: 100%;
+            height: 1px;
+            background: #e0e0e0;
+        }
+
+        .divider span {
+            background: white;
+            padding: 0 15px;
+            color: #999;
+            font-size: 13px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .forgot-password {
+            text-align: right;
+            margin-top: 8px;
+        }
+
+        .forgot-password a {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 13px;
+        }
+
+        .forgot-password a:hover {
+            text-decoration: underline;
+        }
+
         @media (max-width: 768px) {
             .form-panel {
                 padding: 30px 25px;
@@ -267,19 +298,20 @@
     <div class="container">
         <div class="header">
             <div class="logo">CardioLink</div>
-            <div class="tagline">Doctor Portal</div>
+            <div class="tagline">Patient Portal</div>
         </div>
 
         <div class="form-panel">
             <h2>Welcome Back</h2>
-            <p class="subtitle">Sign in to access your ECG dashboard</p>
+            <p class="subtitle">Sign in to access your health records</p>
 
             <div class="alert" id="alertBox"></div>
 
             <form id="loginForm">
                 <div class="form-group">
-                    <label for="email">Email Address</label>
-                    <input type="email" id="email" placeholder="doctor@hospital.com" required>
+                    <label for="identifier">Enter Credentials</label>
+                    <input type="text" id="identifier" placeholder="enter your mobile, email, or name" required>
+                    <div class="input-hint">You can login with any of these credentials</div>
                 </div>
 
                 <div class="form-group">
@@ -293,7 +325,7 @@
                 <button type="submit" class="btn-login" id="submitBtn">Sign In</button>
 
                 <div class="signup-link">
-                    Don't have an account? <a href="signup.html">Create Account</a>
+                    Don't have an account? <a href="patient-signup.html">Register Now</a>
                 </div>
             </form>
         </div>
@@ -302,18 +334,12 @@
     <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-        import { 
-            getAuth, 
-            signInWithEmailAndPassword,
-            sendPasswordResetEmail
-        } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
         import {
             getDatabase,
             ref,
             get
         } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
-        // Your Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyA0pOaxkSl03WRyuRD3JLZAVkR72Drydtw",
             authDomain: "cardiolink-1f862.firebaseapp.com",
@@ -325,20 +351,15 @@
             measurementId: "G-GNC6Z6HV2V"
         };
 
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
         const db = getDatabase(app);
 
-        // DOM elements
         const loginForm = document.getElementById('loginForm');
         const alertBox = document.getElementById('alertBox');
         const submitBtn = document.getElementById('submitBtn');
-        const emailInput = document.getElementById('email');
+        const identifierInput = document.getElementById('identifier');
         const passwordInput = document.getElementById('password');
-        const forgotPasswordLink = document.getElementById('forgotPasswordLink');
 
-        // Show alert function
         function showAlert(message, type) {
             alertBox.textContent = message;
             alertBox.className = `alert ${type}`;
@@ -351,10 +372,9 @@
             }
         }
 
-        // Set loading state
         function setLoading(loading) {
             submitBtn.disabled = loading;
-            emailInput.disabled = loading;
+            identifierInput.disabled = loading;
             passwordInput.disabled = loading;
             
             if (loading) {
@@ -364,43 +384,60 @@
             }
         }
 
-        // Handle forgot password
-        forgotPasswordLink.addEventListener('click', async (e) => {
-            e.preventDefault();
+        // Hash password for comparison
+        async function hashPassword(password) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(password);
+            const hash = await crypto.subtle.digest('SHA-256', data);
+            return Array.from(new Uint8Array(hash))
+                .map(b => b.toString(16).padStart(2, '0'))
+                .join('');
+        }
+
+        // Find patient by identifier (mobile, email, or name)
+        async function findPatientByIdentifier(identifier, hashedPassword) {
+            const patientsRef = ref(db, 'patients_users');
+            const snapshot = await get(patientsRef);
             
-            const email = emailInput.value.trim();
-            
-            if (!email) {
-                showAlert('Please enter your email address first', 'error');
-                return;
+            if (!snapshot.exists()) {
+                return null;
             }
 
-            try {
-                await sendPasswordResetEmail(auth, email);
-                showAlert('Password reset email sent! Check your inbox.', 'success');
-            } catch (error) {
-                console.error('Password reset error:', error);
+            const patients = snapshot.val();
+            const identifierLower = identifier.toLowerCase().trim();
+
+            // Search through all patients
+            for (let patientId in patients) {
+                const patient = patients[patientId];
                 
-                let errorMessage = 'Failed to send reset email.';
-                if (error.code === 'auth/user-not-found') {
-                    errorMessage = 'No account found with this email.';
-                } else if (error.code === 'auth/invalid-email') {
-                    errorMessage = 'Please enter a valid email address.';
+                // Check if identifier matches mobile, email, or name
+                const mobileMatch = patient.mobile === identifier;
+                const emailMatch = patient.email && patient.email.toLowerCase() === identifierLower;
+                const nameMatch = patient.name.toLowerCase() === identifierLower;
+                
+                if ((mobileMatch || emailMatch || nameMatch) && patient.password === hashedPassword) {
+                    return {
+                        patientId: patientId,
+                        name: patient.name,
+                        age: patient.age,
+                        gender: patient.gender,
+                        mobile: patient.mobile,
+                        email: patient.email
+                    };
                 }
-                
-                showAlert(errorMessage, 'error');
             }
-        });
 
-        // Handle form submission
+            return null;
+        }
+
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            const email = emailInput.value.trim();
+            const identifier = identifierInput.value.trim();
             const password = passwordInput.value;
 
-            if (!email || !password) {
-                showAlert('Please enter both email and password', 'error');
+            if (!identifier || !password) {
+                showAlert('Please enter your credentials', 'error');
                 return;
             }
 
@@ -408,63 +445,32 @@
             showAlert('Signing in...', 'info');
 
             try {
-                // Sign in with Firebase Authentication
-                const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                const user = userCredential.user;
+                // Hash the password
+                const hashedPassword = await hashPassword(password);
 
-                // Get user data from database
-                const userRef = ref(db, `doctors/${user.uid}`);
-                const snapshot = await get(userRef);
+                // Find patient by identifier
+                const patient = await findPatientByIdentifier(identifier, hashedPassword);
 
-                let userData = {
-                    uid: user.uid,
-                    email: user.email,
-                    name: user.displayName || 'Doctor',
-                    specialty: 'General'
-                };
-
-                if (snapshot.exists()) {
-                    const dbData = snapshot.val();
-                    userData.name = dbData.name || userData.name;
-                    userData.specialty = dbData.specialty || userData.specialty;
+                if (!patient) {
+                    setLoading(false);
+                    showAlert('Invalid credentials. Please check your information and try again.', 'error');
+                    return;
                 }
 
-                // Store user data in localStorage for quick access
-                localStorage.setItem('cardiolink_user', JSON.stringify(userData));
+                // Store patient data in localStorage
+                localStorage.setItem('cardiolink_patient', JSON.stringify(patient));
 
                 showAlert('Login successful! Redirecting...', 'success');
 
-                // Redirect to dashboard
+                // Redirect to patient dashboard
                 setTimeout(() => {
-                    window.location.href = 'Doctor dashboard.html';
+                    window.location.href = 'patient-dashboard.html';
                 }, 1000);
 
             } catch (error) {
                 setLoading(false);
                 console.error('Login error:', error);
-
-                let errorMessage = 'Failed to sign in. Please try again.';
-                
-                switch (error.code) {
-                    case 'auth/user-not-found':
-                    case 'auth/wrong-password':
-                        errorMessage = 'Invalid email or password.';
-                        break;
-                    case 'auth/invalid-email':
-                        errorMessage = 'Please enter a valid email address.';
-                        break;
-                    case 'auth/user-disabled':
-                        errorMessage = 'This account has been disabled.';
-                        break;
-                    case 'auth/too-many-requests':
-                        errorMessage = 'Too many failed attempts. Please try again later.';
-                        break;
-                    case 'auth/network-request-failed':
-                        errorMessage = 'Network error. Please check your connection.';
-                        break;
-                }
-
-                showAlert(errorMessage, 'error');
+                showAlert('Login failed. Please try again.', 'error');
             }
         });
     </script>
