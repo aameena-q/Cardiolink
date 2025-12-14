@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CardioLink ECG Dashboard</title>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background-color: #0e1628;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      background-image: url('images/1.jpg');
+      background-size: cover;
+    }
+
+    /* Loading Screen */
+    #loadingScreen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: url('images/1.jpg');
+      background-size: cover;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid rgba(167, 180, 255, 0.2);
+      border-top-color: #a7b4ff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    #loadingText {
+      margin-top: 20px;
+      color: #a7b4ff;
+      font-size: 14px;
+    }
+
+    /* Main Content - Hidden initially */
+    #mainContent {
+      display: none;
+      width: 100%;
+      align-items: center;
+      flex-direction: column;
+    }
+
+    /* Top Navigation Bar */
+    .navbar {
+      width: 90%;
+      max-width: 1000px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 25px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 15px;
+      margin-bottom: 20px;
+    }
+
+    .navbar-left {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .navbar-logo {
+      font-size: 20px;
+      font-weight: 600;
+      color: #a7b4ff;
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .user-details {
+      text-align: right;
+    }
+
+    .user-name {
+      color: #bcdcff;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .user-specialty {
+      color: #7a8db3;
+      font-size: 12px;
+    }
+
+    .btn-logout {
+      background: rgba(255, 99, 99, 0.2);
+      border: 1px solid rgba(255, 99, 99, 0.4);
+      color: #ff6363;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.3s;
+    }
+
+    .btn-logout:hover {
+      background: rgba(255, 99, 99, 0.3);
+      transform: translateY(-2px);
+    }
+
+    h1 {
+      margin-bottom: 12px;
+      color: #a7b4ff;
+      letter-spacing: 1px;
+    }
+
+    .controls {
+      width: 90%;
+      max-width: 1000px;
+      display: flex;
+      gap: 12px;
+      margin-bottom: 18px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .controls label {
+      color: #bcdcff;
+      font-size: 14px;
+      margin-right: 8px;
+    }
+
+    select {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.06);
+      color: #fff;
+      padding: 8px 10px;
+      border-radius: 8px;
+      font-size: 14px;
+      min-width: 180px;
+    }
+
+    .view-toggle {
+      display: flex;
+      gap: 8px;
+      margin-left: auto;
+    }
+
+    .toggle-btn {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #bcdcff;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.3s;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .toggle-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      transform: translateY(-1px);
+    }
+
+    .toggle-btn.active {
+      background: rgba(0, 255, 204, 0.2);
+      border-color: rgba(0, 255, 204, 0.4);
+      color: #00ffcc;
+      font-weight: 500;
+    }
+
+    .toggle-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .start-stop-btn {
+      background: rgba(0, 255, 204, 0.15);
+      border: 2px solid rgba(0, 255, 204, 0.4);
+      color: #00ffcc;
+      padding: 10px 24px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.3s;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .start-stop-btn:hover {
+      background: rgba(0, 255, 204, 0.25);
+      transform: translateY(-2px);
+    }
+
+    .start-stop-btn.recording {
+      background: rgba(255, 99, 99, 0.2);
+      border-color: rgba(255, 99, 99, 0.4);
+      color: #ff6363;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+
+    .start-stop-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .dashboard {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      width: 90%;
+      max-width: 1000px;
+      margin-bottom: 20px;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.07);
+      border-radius: 15px;
+      padding: 20px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .card h3 {
+      margin: 0;
+      font-size: 16px;
+      color: #b0c4de;
+      margin-bottom: 10px;
+    }
+
+    .card .value {
+      font-size: 28px;
+      font-weight: 600;
+      color: #00ffcc;
+    }
+
+    .card .sub {
+      font-size: 14px;
+      color: #7fffd4;
+    }
+
+    .chart-container {
+      background: rgb(11, 11, 11);
+      border-radius: 20px;
+      padding: 25px;
+      width: 90%;
+      max-width: 1000px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    canvas {
+      width: 100% !important;
+      height: 400px !important;
+    }
+
+    .status {
+      margin-top: 15px;
+      text-align: center;
+      font-size: 14px;
+      color: #9ee3ff;
+    }
+
+    .patient-info-card {
+      width: 90%;
+      max-width: 1000px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 15px;
+      padding: 20px;
+      margin-bottom: 20px;
+      display: flex;
+      gap: 30px;
+      align-items: center;
+    }
+
+    .patient-info-item {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .patient-info-label {
+      color: #7a8db3;
+      font-size: 12px;
+      margin-bottom: 4px;
+    }
+
+    .patient-info-value {
+      color: #bcdcff;
+      font-size: 16px;
+      font-weight: 500;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Loading Screen -->
+  <div id="loadingScreen">
+    <div class="spinner"></div>
+    <div id="loadingText">Verifying authentication...</div>
+  </div>
+
+  <!-- Main Content -->
+  <div id="mainContent">
+    <!-- Navigation Bar -->
+    <div class="navbar">
+      <div class="navbar-left">
+        <div class="navbar-logo">💓 CardioLink</div>
+      </div>
+      <div class="user-info">
+        <div class="user-details">
+          <div class="user-name" id="userName">Loading...</div>
+          <div class="user-specialty" id="userSpecialty">Loading...</div>
+        </div>
+        <button class="btn-logout" id="logoutBtn">Logout</button>
+      </div>
+    </div>
+
+    <h1>Live ECG Dashboard</h1>
+
+    <!-- Controls: patient + session selection -->
+    <div class="controls">
+      <div>
+        <label for="patientSelect">Patient:</label>
+        <select id="patientSelect">
+          <option value="">Loading patients...</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="sessionSelect">Session (date):</label>
+        <select id="sessionSelect" disabled>
+          <option value="">Select a patient first</option>
+        </select>
+      </div>
+
+      <div class="view-toggle">
+        <button class="toggle-btn active" id="historyBtn" disabled>📊 History</button>
+        <button class="toggle-btn" id="liveBtn" disabled>📡 Live</button>
+        <button class="start-stop-btn" id="startStopBtn" disabled>▶ Start Recording</button>
+      </div>
+    </div>
+
+    <!-- Patient Information Card -->
+    <div class="patient-info-card" id="patientInfoCard" style="display: none;">
+      <div class="patient-info-item">
+        <div class="patient-info-label">Patient Name</div>
+        <div class="patient-info-value" id="patientName">--</div>
+      </div>
+      <div class="patient-info-item">
+        <div class="patient-info-label">Gender</div>
+        <div class="patient-info-value" id="patientGender">--</div>
+      </div>
+      <div class="patient-info-item">
+        <div class="patient-info-label">Age</div>
+        <div class="patient-info-value" id="patientAge">--</div>
+      </div>
+      <div class="patient-info-item">
+        <div class="patient-info-label">Mobile</div>
+        <div class="patient-info-value" id="patientMobile">--</div>
+      </div>
+    </div>
+
+    <!-- Vital Stats -->
+    <div class="dashboard">
+      <div class="card">
+        <h3>Heart Rate</h3>
+        <div class="value" id="heartRate">--</div>
+        <div class="sub">BPM</div>
+      </div>
+
+      <div class="card">
+        <h3>Blood Pressure</h3>
+        <div class="value" id="bloodPressure">--</div>
+        <div class="sub">mmHg</div>
+      </div>
+
+      <div class="card">
+        <h3>Oxygen Saturation</h3>
+        <div class="value" id="oxygen">--</div>
+        <div class="sub">%</div>
+      </div>
+
+      <div class="card">
+        <h3>Temperature</h3>
+        <div class="value" id="temp">--</div>
+        <div class="sub">°C</div>
+      </div>
+    </div>
+
+    <!-- ECG Chart -->
+    <div class="chart-container">
+      <h3 style="color:#a7b4ff;">Live ECG Trace</h3>
+      <canvas id="ecgChart"></canvas>
+      <p class="status" id="status">Connecting to ECG data...</p>
+    </div>
+  </div>
+
+  <!-- Firebase SDK & Authentication -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { 
+      getAuth, 
+      onAuthStateChanged,
+      signOut
+    } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+    import {
+      getDatabase,
+      ref,
+      onValue,
+      get,
+      set
+    } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyA0pOaxkSl03WRyuRD3JLZAVkR72Drydtw",
+      authDomain: "cardiolink-1f862.firebaseapp.com",
+      databaseURL: "https://cardiolink-1f862-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "cardiolink-1f862",
+      storageBucket: "cardiolink-1f862.firebasedatabase.app",
+      messagingSenderId: "490927038737",
+      appId: "1:490927038737:web:68fc2b83b62554de2cecb0",
+      measurementId: "G-GNC6Z6HV2V"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getDatabase(app);
+
+    const loadingScreen = document.getElementById('loadingScreen');
+    const mainContent = document.getElementById('mainContent');
+    const loadingText = document.getElementById('loadingText');
+    const logoutBtn = document.getElementById('logoutBtn');
+
+    // Check authentication status
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        loadingText.textContent = 'Loading dashboard...';
+        
+        try {
+          const userRef = ref(db, `doctors/${user.uid}`);
+          const snapshot = await get(userRef);
+          
+          let userName = user.displayName || 'Doctor';
+          let userSpecialty = 'General';
+          
+          if (snapshot.exists()) {
+            const userData = snapshot.val();
+            userName = userData.name || userName;
+            userSpecialty = userData.specialty || userSpecialty;
+          }
+          
+          document.getElementById('userName').textContent = `Dr. ${userName}`;
+          document.getElementById('userSpecialty').textContent = userSpecialty;
+          
+          localStorage.setItem('cardiolink_user', JSON.stringify({
+            uid: user.uid,
+            email: user.email,
+            name: userName,
+            specialty: userSpecialty
+          }));
+          
+          loadingScreen.style.display = 'none';
+          mainContent.style.display = 'flex';
+          
+          initializeDashboard();
+          
+        } catch (error) {
+          console.error('Error loading user data:', error);
+          loadingText.textContent = 'Error loading dashboard';
+        }
+        
+      } else {
+        loadingText.textContent = 'Not authenticated. Redirecting...';
+        setTimeout(() => {
+          window.location.href = 'login.html';
+        }, 1000);
+      }
+    });
+
+    // Logout functionality
+    logoutBtn.addEventListener('click', async () => {
+      if (confirm('Are you sure you want to logout?')) {
+        try {
+          await signOut(auth);
+          localStorage.removeItem('cardiolink_user');
+          window.location.href = 'login.html';
+        } catch (error) {
+          console.error('Logout error:', error);
+          alert('Failed to logout. Please try again.');
+        }
+      }
+    });
+
+    // Dashboard initialization
+    function initializeDashboard() {
+      const patientSelect = document.getElementById('patientSelect');
+      const sessionSelect = document.getElementById('sessionSelect');
+      const statusEl = document.getElementById('status');
+      const heartEl = document.getElementById('heartRate');
+      const bpEl = document.getElementById('bloodPressure');
+      const oxyEl = document.getElementById('oxygen');
+      const tempEl = document.getElementById('temp');
+      
+      const patientInfoCard = document.getElementById('patientInfoCard');
+      const patientNameEl = document.getElementById('patientName');
+      const patientGenderEl = document.getElementById('patientGender');
+      const patientAgeEl = document.getElementById('patientAge');
+      const patientMobileEl = document.getElementById('patientMobile');
+
+      const historyBtn = document.getElementById('historyBtn');
+      const liveBtn = document.getElementById('liveBtn');
+      const startStopBtn = document.getElementById('startStopBtn');
+
+      let currentView = 'history';
+      let currentPatientIndex = null;
+      let currentSessionDate = null;
+      let isRecording = false;
+      let recordingStartTime = 0;
+
+      const ctx = document.getElementById('ecgChart').getContext('2d');
+      const ecgChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: [{
+            label: 'ECG Signal (0-1024)',
+            data: [],
+            borderColor: '#00ffcc',
+            backgroundColor: 'rgba(0,255,204,0.05)',
+            tension: 0.3,
+            borderWidth: 2,
+            pointRadius: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          animation: false,
+          scales: {
+            x: { display: false },
+            y: {
+              color: '#fff',
+              min: 0,
+              max: 1024,
+              title: { display: true, text: 'Signal', color: '#fff' }
+            }
+          },
+          plugins: {
+            legend: { display: false }
+          }
+        }
+      });
+
+      let currentUnsubscribe = null;
+      let allLiveData = [];
+
+      function clearChart() {
+        ecgChart.data.labels = [];
+        ecgChart.data.datasets[0].data = [];
+        ecgChart.update();
+        allLiveData = [];
+      }
+
+      function hidePatientInfo() {
+        patientInfoCard.style.display = 'none';
+        patientNameEl.textContent = '--';
+        patientGenderEl.textContent = '--';
+        patientAgeEl.textContent = '--';
+        patientMobileEl.textContent = '--';
+      }
+
+      function updateVitalStats() {
+        heartEl.textContent = Math.floor(70 + Math.random() * 10);
+        bpEl.textContent = `${120 + Math.floor(Math.random() * 10)} / 80`;
+        oxyEl.textContent = (96 + Math.random() * 3).toFixed(1);
+        tempEl.textContent = (36.5 + Math.random() * 0.5).toFixed(1);
+      }
+
+      async function setRecordingState(patientIndex, shouldRecord) {
+        const controlRef = ref(db, `ecg_stream/${patientIndex}/control`);
+        try {
+          const { set } = await import("https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js");
+          await set(controlRef, { recording: shouldRecord });
+          console.log(`Control signal sent: recording = ${shouldRecord}`);
+          return true;
+        } catch (err) {
+          console.error('Failed to set recording state:', err);
+          return false;
+        }
+      }
+
+      async function loadPatients() {
+        const patientsRef = ref(db, 'patients_users');
+        try {
+          const snapshot = await get(patientsRef);
+          
+          if (!snapshot.exists()) {
+            patientSelect.innerHTML = '<option value="">No patients found</option>';
+            sessionSelect.innerHTML = '<option value="">No sessions</option>';
+            sessionSelect.disabled = true;
+            statusEl.textContent = 'No patients available in database.';
+            return;
+          }
+
+          const patientsData = snapshot.val();
+          const patients = [];
+          
+          if (Array.isArray(patientsData)) {
+            for (let i = 0; i < patientsData.length; i++) {
+              if (patientsData[i] && patientsData[i].patientId) {
+                patients.push({
+                  id: patientsData[i].patientId,
+                  name: patientsData[i].name || 'Unknown',
+                  index: i
+                });
+              }
+            }
+          } else if (typeof patientsData === 'object') {
+            Object.keys(patientsData).forEach(key => {
+              const patient = patientsData[key];
+              if (patient && patient.patientId) {
+                patients.push({
+                  id: patient.patientId,
+                  name: patient.name || 'Unknown',
+                  index: key
+                });
+              }
+            });
+          }
+
+          if (patients.length === 0) {
+            patientSelect.innerHTML = '<option value="">No patients found</option>';
+            statusEl.textContent = 'No patients available.';
+            return;
+          }
+
+          patientSelect.innerHTML = '<option value="">-- Select patient --</option>';
+          patients.forEach(p => {
+            const opt = document.createElement('option');
+            opt.value = p.index;
+            opt.textContent = `${p.name} (ID: ${p.id})`;
+            patientSelect.appendChild(opt);
+          });
+
+          statusEl.textContent = 'Select a patient to view sessions.';
+        } catch (err) {
+          console.error('Failed to load patients:', err);
+          patientSelect.innerHTML = '<option value="">Error loading patients</option>';
+          statusEl.textContent = 'Error loading patients. Check console for details.';
+        }
+      }
+
+      async function displayPatientInfo(patientIndex) {
+        const patientRef = ref(db, `patients_users/${patientIndex}`);
+        try {
+          const snapshot = await get(patientRef);
+          if (snapshot.exists()) {
+            const patient = snapshot.val();
+            patientNameEl.textContent = patient.name || 'Unknown';
+            patientGenderEl.textContent = patient.gender ? patient.gender.charAt(0).toUpperCase() + patient.gender.slice(1) : '--';
+            patientAgeEl.textContent = patient.age || '--';
+            patientMobileEl.textContent = patient.mobile || '--';
+            patientInfoCard.style.display = 'flex';
+          }
+        } catch (err) {
+          console.error('Failed to load patient info', err);
+        }
+      }
+
+      async function loadSessions(patientIndex) {
+        sessionSelect.disabled = true;
+        sessionSelect.innerHTML = '<option value="">Loading sessions...</option>';
+        clearChart();
+        
+        displayPatientInfo(patientIndex);
+        
+        statusEl.textContent = 'Loading sessions...';
+
+        // Get today's date in DD-MM-YYYY format
+        const today = new Date();
+        const todayStr = String(today.getDate()).padStart(2, '0') + '-' + 
+                        String(today.getMonth() + 1).padStart(2, '0') + '-' + 
+                        today.getFullYear();
+
+        const ecgStreamRef = ref(db, `ecg_stream/${patientIndex}/history`);
+        try {
+          const snapshot = await get(ecgStreamRef);
+          
+          let dates = [];
+          
+          if (snapshot.exists()) {
+            const historyObj = snapshot.val();
+            dates = Object.keys(historyObj).sort((a,b) => b.localeCompare(a));
+          }
+          
+          // Always add today if not already in the list
+          if (!dates.includes(todayStr)) {
+            dates.unshift(todayStr);
+          }
+
+          sessionSelect.innerHTML = '<option value="">-- Select session (date) --</option>';
+          
+          dates.forEach(dateStr => {
+            const opt = document.createElement('option');
+            opt.value = dateStr;
+            
+            // Mark today's date
+            if (dateStr === todayStr) {
+              opt.textContent = dateStr + ' (Today)';
+            } else {
+              opt.textContent = dateStr;
+            }
+            
+            sessionSelect.appendChild(opt);
+          });
+
+          sessionSelect.disabled = false;
+          startStopBtn.disabled = false;
+          statusEl.textContent = 'Select a session to view ECG data or start recording.';
+        } catch (err) {
+          console.error('Failed to load sessions', err);
+          
+          // Even on error, add today's date
+          sessionSelect.innerHTML = '<option value="">-- Select session (date) --</option>';
+          const opt = document.createElement('option');
+          opt.value = todayStr;
+          opt.textContent = todayStr + ' (Today)';
+          sessionSelect.appendChild(opt);
+          
+          sessionSelect.disabled = false;
+          startStopBtn.disabled = false;
+          statusEl.textContent = 'Select today to start recording or view historical sessions.';
+        }
+      }
+
+      function showHistoryData(patientIndex, sessionDate) {
+        if (typeof currentUnsubscribe === 'function') {
+          try { currentUnsubscribe(); } catch (e) { }
+          currentUnsubscribe = null;
+        }
+
+        clearChart();
+        statusEl.textContent = `Loading historical data for ${sessionDate}...`;
+
+        const historyRef = ref(db, `ecg_stream/${patientIndex}/history/${sessionDate}`);
+        
+        get(historyRef).then(snapshot => {
+          if (!snapshot.exists()) {
+            statusEl.textContent = 'No historical data found for this session.';
+            return;
+          }
+
+          const sessionData = snapshot.val();
+          const recordingIds = Object.keys(sessionData);
+          
+          let allSignals = [];
+          recordingIds.forEach(recordingId => {
+            const recording = sessionData[recordingId];
+            if (recording.s && Array.isArray(recording.s)) {
+              allSignals = allSignals.concat(recording.s);
+            }
+          });
+
+          if (allSignals.length === 0) {
+            statusEl.textContent = 'No signal data found in history.';
+            return;
+          }
+
+          ecgChart.data.labels = allSignals.map((_, i) => i);
+          ecgChart.data.datasets[0].data = allSignals;
+          ecgChart.update();
+
+          const avgSignal = allSignals.reduce((a, b) => a + b, 0) / allSignals.length;
+          statusEl.textContent = `📊 History: ${allSignals.length} samples from ${sessionDate}. Avg: ${avgSignal.toFixed(1)}`;
+
+          updateVitalStats();
+        }).catch(err => {
+          console.error('Error loading historical data:', err);
+          statusEl.textContent = 'Error loading historical data.';
+        });
+      }
+
+      function showLiveData(patientIndex) {
+        if (typeof currentUnsubscribe === 'function') {
+          try { currentUnsubscribe(); } catch (e) { }
+          currentUnsubscribe = null;
+        }
+
+        clearChart();
+        statusEl.textContent = `📡 Connecting to live stream...`;
+
+        const latestRef = ref(db, `ecg_stream/${patientIndex}/latest`);
+        
+        currentUnsubscribe = onValue(latestRef, (snapshot) => {
+          if (snapshot.exists()) {
+            const latestData = snapshot.val();
+            if (latestData.s && Array.isArray(latestData.s)) {
+              // Append new data to existing
+              latestData.s.forEach(val => {
+                allLiveData.push(val);
+              });
+
+              // Keep last 3000 samples for smooth display
+              if (allLiveData.length > 3000) {
+                allLiveData = allLiveData.slice(-3000);
+              }
+
+              ecgChart.data.labels = allLiveData.map((_, i) => i);
+              ecgChart.data.datasets[0].data = allLiveData;
+              ecgChart.update('none');
+              
+              const avgSignal = allLiveData.reduce((a, b) => a + b, 0) / allLiveData.length;
+              const duration = isRecording ? Math.floor((Date.now() - recordingStartTime) / 1000) : 0;
+              statusEl.textContent = `📡 Live: ${allLiveData.length} samples${isRecording ? ` | Recording: ${duration}s` : ''}. Avg: ${avgSignal.toFixed(1)}`;
+              
+              updateVitalStats();
+            }
+          } else {
+            statusEl.textContent = '📡 Waiting for live data...';
+          }
+        }, (error) => {
+          console.error('Error in live stream:', error);
+          statusEl.textContent = '📡 Error connecting to live stream.';
+        });
+      }
+
+      function switchView(newView) {
+        if (!currentPatientIndex) return;
+        
+        currentView = newView;
+        
+        if (newView === 'history') {
+          if (!currentSessionDate) {
+            statusEl.textContent = 'Please select a session date first.';
+            return;
+          }
+          historyBtn.classList.add('active');
+          liveBtn.classList.remove('active');
+          showHistoryData(currentPatientIndex, currentSessionDate);
+        } else {
+          liveBtn.classList.add('active');
+          historyBtn.classList.remove('active');
+          showLiveData(currentPatientIndex);
+        }
+      }
+
+      async function toggleRecording() {
+        if (!currentPatientIndex) return;
+
+        if (!isRecording) {
+          // Start recording
+          startStopBtn.disabled = true;
+          startStopBtn.textContent = '⏳ Starting...';
+          
+          const success = await setRecordingState(currentPatientIndex, true);
+          
+          if (success) {
+            isRecording = true;
+            recordingStartTime = Date.now();
+            startStopBtn.classList.add('recording');
+            startStopBtn.textContent = '⏹ Stop Recording';
+            
+            // Get today's date
+            const today = new Date();
+            const todayStr = String(today.getDate()).padStart(2, '0') + '-' + 
+                            String(today.getMonth() + 1).padStart(2, '0') + '-' + 
+                            today.getFullYear();
+            
+            // Auto-select today's session if not already selected
+            if (currentSessionDate !== todayStr) {
+              // Find today in the dropdown
+              const options = sessionSelect.options;
+              for (let i = 0; i < options.length; i++) {
+                if (options[i].value === todayStr) {
+                  sessionSelect.selectedIndex = i;
+                  currentSessionDate = todayStr;
+                  break;
+                }
+              }
+            }
+            
+            // Auto-switch to live view
+            currentView = 'live';
+            liveBtn.classList.add('active');
+            historyBtn.classList.remove('active');
+            historyBtn.disabled = false;
+            liveBtn.disabled = false;
+            showLiveData(currentPatientIndex);
+            
+            statusEl.textContent = '🔴 Recording started - Live data streaming...';
+          } else {
+            statusEl.textContent = '❌ Failed to start recording';
+          }
+          
+          startStopBtn.disabled = false;
+          
+        } else {
+          // Stop recording
+          startStopBtn.disabled = true;
+          startStopBtn.textContent = '⏳ Stopping...';
+          
+          const success = await setRecordingState(currentPatientIndex, false);
+          
+          if (success) {
+            isRecording = false;
+            startStopBtn.classList.remove('recording');
+            startStopBtn.textContent = '▶ Start Recording';
+            
+            const duration = Math.floor((Date.now() - recordingStartTime) / 1000);
+            statusEl.textContent = `✅ Recording stopped. Duration: ${duration}s. Total samples: ${allLiveData.length}`;
+            
+            // Reload sessions to show today's data in history
+            await loadSessions(currentPatientIndex);
+          } else {
+            statusEl.textContent = '❌ Failed to stop recording';
+          }
+          
+          startStopBtn.disabled = false;
+        }
+      }
+
+      historyBtn.addEventListener('click', () => switchView('history'));
+      liveBtn.addEventListener('click', () => switchView('live'));
+      startStopBtn.addEventListener('click', toggleRecording);
+
+      patientSelect.addEventListener('change', (e) => {
+        const patientIndex = e.target.value;
+        if (!patientIndex) {
+          sessionSelect.innerHTML = '<option value="">Select a patient first</option>';
+          sessionSelect.disabled = true;
+          statusEl.textContent = 'Select a patient to view sessions.';
+          hidePatientInfo();
+          historyBtn.disabled = true;
+          liveBtn.disabled = true;
+          startStopBtn.disabled = true;
+          historyBtn.classList.add('active');
+          liveBtn.classList.remove('active');
+          currentView = 'history';
+          currentPatientIndex = null;
+          currentSessionDate = null;
+          isRecording = false;
+          startStopBtn.classList.remove('recording');
+          startStopBtn.textContent = '▶ Start Recording';
+          if (typeof currentUnsubscribe === 'function') { 
+            try { currentUnsubscribe(); } catch(e){} 
+            currentUnsubscribe = null; 
+          }
+          clearChart();
+          return;
+        }
+        currentPatientIndex = patientIndex;
+        loadSessions(patientIndex);
+      });
+
+      sessionSelect.addEventListener('change', (e) => {
+        const sessionDate = e.target.value;
+        const patientIndex = patientSelect.value;
+        if (!patientIndex || !sessionDate) {
+          if (patientIndex) {
+            statusEl.textContent = 'Select a session or start recording.';
+          } else {
+            statusEl.textContent = 'Select a patient and session.';
+          }
+          historyBtn.disabled = true;
+          liveBtn.disabled = true;
+          currentSessionDate = null;
+          if (typeof currentUnsubscribe === 'function') { 
+            try { currentUnsubscribe(); } catch(e){} 
+            currentUnsubscribe = null; 
+          }
+          clearChart();
+          return;
+        }
+        
+        currentSessionDate = sessionDate;
+        historyBtn.disabled = false;
+        liveBtn.disabled = false;
+        
+        // Default to history view when session is selected
+        currentView = 'history';
+        historyBtn.classList.add('active');
+        liveBtn.classList.remove('active');
+        
+        showHistoryData(patientIndex, sessionDate);
+      });
+
+      loadPatients();
+    }
+  </script>
+</body>
+</html>
