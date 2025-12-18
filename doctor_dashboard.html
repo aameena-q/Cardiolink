@@ -794,6 +794,11 @@
             return;
           }
 
+          // Limit to last 2000 samples to avoid messy chart
+          if (allSignals.length > 2000) {
+            allSignals = allSignals.slice(-2000);
+          }
+
           ecgChart.data.labels = allSignals.map((_, i) => i);
           ecgChart.data.datasets[0].data = allSignals;
           ecgChart.update();
